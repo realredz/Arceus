@@ -1,6 +1,7 @@
 local _ENV = (getgenv or getrenv or getfenv)()
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 
@@ -53,7 +54,8 @@ local Module = {} do
   
   function Module:SaveCurrentServer()
     return pcall(function()
-      local Servers = HttpService:JSONDecode(readfile(`{arceus_folder}/ServersLog.json`) or "[]")
+      local Success, EncodedServers = pcall(readfile, `{arceus_folder}/ServersLog.json`)
+      local Servers = if Success and EncodedServers then HttpService:JSONDecode(EncodedServers) else {}
       
       for id, time in pairs(Servers) do
         if (tick() - time) >= 60*60 then
@@ -63,7 +65,7 @@ local Module = {} do
       
       Servers[game.JobId] = tick()
       
-      writefile(`{arceus_folder}/ServersLog.json`, HttpService:JSONDecode(Servers))
+      writefile(`{arceus_folder}/ServersLog.json`, HttpService:JSONEncode(Servers))
     end)
   end
   
